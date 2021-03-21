@@ -1,5 +1,5 @@
 # td_arc  
-version 0.1  
+version 0.12  
   branches need to be created.  
   current version needs to be **pasted in a package named td_arc_dev in a java-project named arcade** - there is going to be the hole project available for download.    
     
@@ -17,7 +17,7 @@ version 0.1
   -unknown-  
   'there are no good things, until you do them'  
     
-  peace, love and liberty to you out there <3  
+  peace, love and liberty to You out there <3  
   r4m6  
  
 
