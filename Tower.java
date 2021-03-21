@@ -7,7 +7,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
 public class Tower extends Base {
-	public int	price, damage, speed, range;
+	public int price, damage, speed, range, accuracy;
+	public int bonusAcc;
 
 	public JLabel label = new JLabel();
 	
@@ -27,6 +28,7 @@ public class Tower extends Base {
 			this.setDamage(10);
 			this.setSpeed(1);
 			this.setRange(150);
+			this.setAccuracy(80);
 			
 			this.getLabel().setIcon(new ImageIcon(getClass().getResource("simpleTower.png")));
 		}
@@ -34,12 +36,26 @@ public class Tower extends Base {
 		//grey tower
 		if (name.equalsIgnoreCase("grey tower")) {
 			this.setName(name);
-			this.setPrice(100);
+			this.setPrice(70);
 			this.setDamage(50);
 			this.setSpeed(1);
 			this.setRange(150);
+			this.setAccuracy(70);
 			
 			this.getLabel().setIcon(new ImageIcon(getClass().getResource("greyTower.png")));
+		}
+		
+		//bomb tower
+		if (name.equalsIgnoreCase("bomb tower")) {
+			this.setName(name);
+			this.setPrice(100);
+			this.setDamage(30);
+			this.setSpeed(1);
+			this.setRange(120);
+			this.setAccuracy(60);
+			
+			this.getLabel().setIcon(new ImageIcon(getClass().getResource("bombTower.png")));
+		
 		}
 	}
 	
@@ -57,6 +73,14 @@ public class Tower extends Base {
 	
 	public int getRange() {
 		return this.range;
+	}
+	
+	public int getAccuracy() {
+		return this.accuracy;
+	}
+	
+	public int getBonusAcc() {
+		return this.bonusAcc;
 	}
 	
 	public JLabel getLabel() {
@@ -85,6 +109,14 @@ public class Tower extends Base {
 	
 	public void setRange(int range) {
 		this.range = range;
+	}
+	
+	public void setAccuracy(int accuracy) {
+		this.accuracy = accuracy;
+	}
+	
+	public void setBonusAcc(int bonusAcc) {
+		this.bonusAcc = bonusAcc;
 	}
 	
 	public void show() {
@@ -139,13 +171,19 @@ public class Tower extends Base {
 				this.setDamage(this.getDamage() + 10);
 				this.setSpeed(this.getSpeed() + 2);
 				this.setRange(this.getRange() + 10);
+				this.setAccuracy(this.getAccuracy() + 1);
 			} else if ( this.getName().equalsIgnoreCase("grey tower") ) {
 				this.setDamage(this.getDamage() + (this.getDamage()/2));
 				this.setSpeed(this.getSpeed() + 1);
 				this.setRange(this.getRange() + 1);
+				this.setAccuracy(this.getAccuracy() + 1);
+			} else if ( this.getName().equalsIgnoreCase("bomb tower") ) {
+				this.setDamage(this.getDamage() + 15);
+				this.setSpeed(this.getSpeed() + 1);
+				this.setRange(this.getRange() + 3);
+				this.setAccuracy(this.getAccuracy() + 1);
 			}
-			
-			
+						
 			this.setPrice(this.getPrice() + (this.getPrice()/2));
 		} else
 			System.out.println("can't afford");
@@ -171,9 +209,24 @@ public class Tower extends Base {
 				shot.setY(shot.getY() - 1);
 			
 			if ( (shot.getX() == targetX) && (shot.getY() == targetY) ) {
-				int oldHealth = enemy.getHealth();
-				enemy.setHealth(enemy.getHealth() - this.getDamage());
-				td_arc.setScore(td_arc.getScore() + (oldHealth - enemy.getHealth())); //damage delt is added to score
+				//checks if a random number is in the bigger half between accuracy and 100 f.e. if its >=90 if accuracy is 80 to make a hit
+				if (randomInt(1, 100) <= (this.getAccuracy() + this.getBonusAcc())) {
+					setBonusAcc(0);
+					int oldHealth = enemy.getHealth();
+					enemy.setHealth(enemy.getHealth() - (this.getDamage() - (randomInt(0, (this.getDamage() / 2)))));	//the damage of every hit is minored by max 50%
+					td_arc.setScore(td_arc.getScore() + (oldHealth - enemy.getHealth())); 	//damage delt is added to score
+					//TODO:green affordable, red isnt
+					
+					//additional area effect for bomb tower
+					if (this.getName().equalsIgnoreCase("bomb tower")) {
+						shot.setIsExploding(true);
+						dealAreaDamage(shot.getX(), shot.getY(), td_arc);
+					}
+				//shot missed, next one gets more accuracy
+				} else {
+					setBonusAcc(getBonusAcc() + 1);
+				}
+				
 				shot.setIsRip(true);
 			}
 				
@@ -263,6 +316,19 @@ public class Tower extends Base {
 		}
 		
 		return id;
+	}
+	
+	public void dealAreaDamage(int x, int y, TowerDefenseArcade td_arc) {
+
+		for (Enemy enemy : td_arc.getEnemys()) {
+			if ((Math.pow((enemy.getX() - x),2) + Math.pow((enemy.getY() - y), 2)) < (Math.pow(50, 2))) {
+				int oldHealth = enemy.getHealth();
+				enemy.setHealth(enemy.getHealth() - getDamage());
+				td_arc.setScore(td_arc.getScore() + (oldHealth - enemy.getHealth()));
+				
+				System.out.println(true);
+			}
+		}
 	}
 	
 }

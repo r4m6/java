@@ -12,7 +12,7 @@ public class TowerDefenseArcade {
 	public boolean isHighscore, isOver  = false;
 	
 	//TODO:int is way to small for score, think of the coins, too...
-	public int 	score, coins, wave, time, sec, min;
+	public int 	score, coins, wave, time, sec, min, tempo;
 	
 	List<Enemy> enemys = new ArrayList<Enemy>();
 	List<Tower> towers = new ArrayList<Tower>();
@@ -128,6 +128,10 @@ public class TowerDefenseArcade {
 		return this.min;
 	}
 	
+	public int getTempo() {
+		return this.tempo;
+	}
+	
 	public void setIsHighscore(boolean isHighscore) {
 		 this.isHighscore = isHighscore;
 	}
@@ -160,6 +164,10 @@ public class TowerDefenseArcade {
 		 this.min = min;
 	}
 	
+	public void setTempo(int tempo) {
+		this.tempo = tempo;
+	}
+	
 	public List<Tower> getTowers() {
 		return this.towers;
 	}
@@ -187,6 +195,7 @@ public class TowerDefenseArcade {
 		setTime(0);
 		setMin(0);
 		setSec(0);
+		setTempo(10000000);
 	}
 	
 	public void rungame(Frame frame) {
@@ -205,8 +214,8 @@ public class TowerDefenseArcade {
 					frame.hideMenu();
 					later = System.nanoTime();
 					
-					//what happens every sec*0.01?
-					if(later > (now+10000000)) {
+					//what happens every sec*0.01 (if tempo==10000000)?
+					if(later > (now+getTempo())) {
 						showTowers();
 						
 						if ( !getEnemys().isEmpty() ) {
@@ -308,7 +317,6 @@ public class TowerDefenseArcade {
 	}
 	
 	//moves enemy towards player-tower; improvable 
-	//TODO: instead only areas use 3 sets of moves, 1 for each area
 	public void moveEnemy(Enemy enemy, Frame frame) {
 		int random = enemy.randomInt(1, 3);
 		int x = enemy.getX();

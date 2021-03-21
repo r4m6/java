@@ -5,6 +5,8 @@ import java.awt.Graphics;
 
 public class Shot extends Base {
 
+	boolean isExploding = false;
+	
 	public Shot(Tower tower) {
 		this.setName(tower.getName() + " shot");
 		this.setX(tower.getX() + 9);
@@ -21,8 +23,20 @@ public class Shot extends Base {
 		} else if ( this.getName().equalsIgnoreCase("grey tower shot") ) {
 			g.setColor(new Color (102, 51, 0));//brown
 			g.fillOval(getX(), getY(), getWidth() + 2, getHeight() + 2);
+		} else if ( this.getName().equalsIgnoreCase("bomb tower shot") ) {
+			g.setColor(new Color (102, 102, 51));//camouflage grey
+			g.fillOval(getX(), getY(), getWidth() + 1, getHeight() + 1);
+			if (getIsExploding()) {
+				g.setColor(Color.red);
+				g.fillOval(getX(), getY(), 50, 50);
+			}
+				
 		}
 		
+	}
+	
+	public boolean getIsExploding() {
+		return this.isExploding;
 	}
 	
 	public int getWidth() {
@@ -31,6 +45,10 @@ public class Shot extends Base {
 	
 	public int getHeight() {
 		return this.height;
+	}
+	
+	public void setIsExploding(boolean isExploding) {
+		this.isExploding = isExploding;
 	}
 	
 	public void setWidth(int width) {

@@ -84,7 +84,7 @@ public abstract class Base {
 		return distance;
 	}
 	
-	public int randomInt(int min, int max) {
+	public static int randomInt(int min, int max) {
 		int i = (int) ((Math.random() * (max - min + 1) + min));
 		
 		return i;

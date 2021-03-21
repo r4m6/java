@@ -18,7 +18,7 @@ import javax.swing.JPanel;
 public class Frame extends JPanel implements MouseListener, KeyListener {
 	private static final long serialVersionUID = 1L;
 
-	public boolean isMall, isMenu, isSubmitted, isScore = false;
+	public boolean isMall, isMenu, isSubmitted, isScore, isFast = false;
 	
 	public int highlightX, highlightY, mallCount;
 	
@@ -58,8 +58,10 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 		this.mallCount = 0;
 		Tower mallSimpleTower = new Tower("simple tower");
 		Tower mallGreyTower	= new Tower("grey tower");
+		Tower mallBombTower = new Tower("bomb tower");
 		getMallTowers().add(mallSimpleTower);
 		getMallTowers().add(mallGreyTower);
+		getMallTowers().add(mallBombTower);
 		for ( Tower tower : getMallTowers() ) {
 			tower.setIsRip(true);
 			tower.setX(560);
@@ -146,7 +148,7 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 		}
 		
 		paintHUD(g, this.td_arc);
-
+		
 		//menu
 		if ( getIsMenu() ) {
 			g.setColor(Color.black);
@@ -279,6 +281,15 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 		g.setColor(Color.orange);
 		g.drawRect(1, 1, 50, 10);
 		g.drawString("menu", 10, 10);
+		if (!getIsFast()) {
+			g.setColor(Color.green);
+			g.drawRect(6, 16, 25, 10);
+			g.drawString(">>", 10, 25);
+		} else {
+			g.setColor(Color.green);
+			g.drawRect(6, 16, 35, 10);
+			g.drawString(">>>", 10, 25);
+		}
 		g.setColor(Color.red);
 		g.drawString("score: " + td_arc.getScore(), 60, 10);
 		g.drawString("wave: " + td_arc.getWave(), 230, 10);
@@ -327,6 +338,10 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 	public boolean getIsSubmitted() {
 		return this.isSubmitted;
 	}
+	
+	public boolean getIsFast() {
+		return this.isFast;
+	}
 
 	public int getMallCount() {
 		return this.mallCount;
@@ -370,6 +385,10 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 	
 	public void setIsSubmitted(boolean isSubmitted) {
 		 this.isSubmitted = isSubmitted;
+	}
+	
+	public void setIsFast(boolean isFast) {
+		this.isFast = isFast;
 	}
 	
 	public boolean getIsInGrid(int x, int y) {		
@@ -463,8 +482,8 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 		boolean occupied = getIsOccupied(x, y);
 		
 		if ( !occupied && (x != -50) ) {
-			if ( this.td_arc.getCoins() >= getMallTowers().get(this.mallCount).getPrice() ) {
-				this.td_arc.setCoins(this.td_arc.getCoins() - getMallTowers().get(this.mallCount).getPrice());
+			if ( this.td_arc.getCoins() >= getMallTowers().get(this.getMallCount()).getPrice() ) {
+				this.td_arc.setCoins(this.td_arc.getCoins() - getMallTowers().get(this.getMallCount()).getPrice());
 				this.td_arc.addTower(x, y, this);
 				System.out.println("bought " + this.td_arc.getTowers().get(this.td_arc.getTowers().size() - 1).getName());
 			} else
@@ -482,17 +501,19 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 		int damage = 0;
 		int speed = 0;
 		int range = 0;
+		int accuracy = 0;
 		
 		if ( getIsMall() && (!this.td_arc.getIsHighscore() && !getIsScore() && !getIsMenu()) ) {
 			
 			if ( x != -50 && !getIsOccupied(x, y) ) {
 				
 				for ( Tower mallTower : getMallTowers() ) {
-					if ( getMallTowers().indexOf(mallTower) == this.mallCount ) {
+					if ( getMallTowers().indexOf(mallTower) == this.getMallCount() ) {
 						price = mallTower.getPrice();
 						damage = mallTower.getDamage();
 						speed = mallTower.getSpeed();
 						range = mallTower.getRange();
+						accuracy = mallTower.getAccuracy();
 						mallTower.show();
 					} else
 						mallTower.hide();
@@ -502,13 +523,14 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 				this.mallBuyLabel.setBounds(557, 620, 23, 31);
 				this.mallBuyLabel.setVisible(true);
 				g.setColor(Color.lightGray);
-				g.drawRect(585, 595, 105, 55);
+				g.drawRect(585, 595, 105, 65);
 				g.setColor(Color.magenta);
-				g.drawString("coins:	" + price, 590, 610);
-				g.drawString("damage:	" + damage, 590, 621);
-				g.drawString("speed:	" + speed, 590, 632);
-				g.drawString("range:	" + range, 590, 643);
-			} else if ( getIsOccupied(x, y) ) {
+				g.drawString("coins:	" + price, 590, 609);
+				g.drawString("damage:	" + damage, 590, 620);
+				g.drawString("speed:	" + speed, 590, 631);
+				g.drawString("range:	" + range, 590, 642);
+				g.drawString("accuracy:	" + accuracy, 590, 653);
+			} else if (getIsOccupied(x, y)) {
 				highlightGrid(g, getHighlightX(), getHighlightY());
 				
 				for ( Tower tower : this.td_arc.getTowers() ) {
@@ -521,18 +543,26 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 							damage = tower.getDamage() + 10;
 							speed = tower.getSpeed() + 2;
 							range = tower.getRange() + 10;
+							accuracy = tower.getAccuracy() + 1;
 						} else if ( tower.getName().equalsIgnoreCase("grey tower") ) {
 							damage = tower.getDamage() + (tower.getDamage()/2);
 							speed = tower.getSpeed() + 1;
 							range = tower.getRange() + 1;
+							accuracy = tower.getAccuracy() + 1;
+						} else if ( tower.getName().equalsIgnoreCase("bomb tower") ) {
+							damage = tower.getDamage() + 15;
+							speed = tower.getSpeed() + 1;
+							range = tower.getRange() + 2;
+							accuracy = tower.getAccuracy() + 1;
 						}
 						g.setColor(Color.lightGray);
-						g.drawRect(585, 595, 105, 55);
+						g.drawRect(585, 595, 105, 65);
 						g.setColor(Color.magenta);
-						g.drawString("upgrade:	" + price, 590, 610);
-						g.drawString("damage:	" + damage, 590, 621);
-						g.drawString("speed:	" + speed, 590, 632);
-						g.drawString("range:	" + range, 590, 643);
+						g.drawString("coins:	" + price, 590, 609);
+						g.drawString("damage:	" + damage, 590, 620);
+						g.drawString("speed:	" + speed, 590, 631);
+						g.drawString("range:	" + range, 590, 642);
+						g.drawString("accuracy:	" + accuracy, 590, 653);
 						
 						for ( Tower mallTower : getMallTowers() )
 							if ( tower.getName().equalsIgnoreCase(mallTower.getName()) )
@@ -549,11 +579,18 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 		
 	}
 	
-	public void nextTowerMall() {
-		if ( this.mallCount == 0)
-			this.mallCount++;
-		else
-			this.mallCount--;
+	public void nextTowerMall(int direction) {
+		if (direction == 1) {
+			if ( getMallCount() != (getMallTowers().size()-1) )
+				setMallCount(getMallCount() + 1);
+			else
+				setMallCount(0);
+		} else if (direction == 0) {
+			if (getMallCount() != 0)
+				setMallCount(getMallCount() - 1);
+			else
+				setMallCount(getMallTowers().size()-1);
+		}
 	}
 	
 	public void hideMall() {
@@ -671,40 +708,51 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		System.out.println("X: " + e.getX() + " Y: " + e.getY());
+		int x = e.getX();
+		int y = e.getY();
+		System.out.println("X: " + x + " Y: " + y);
 
 		//highlight field for tower placement
 		setHighlightX(e.getX());
 		setHighlightY(e.getY());	
 				
 		//menu-button
-		if ( !getIsScore() && (e.getX() <= 50 && e.getY() <= 20) && !this.td_arc.getIsHighscore() && !this.td_arc.getIsOver() ) {
+		if (!getIsScore() && (x <= 50 && y <= 15) && !this.td_arc.getIsHighscore() && !this.td_arc.getIsOver()) {
 			if (!getIsMenu())
 				setIsMenu(true);
 			else
 				setIsMenu(false);
+		//speedup-button
+		} else if (!getIsScore() && (x <= 50 && y <= 30) && y > 15 && !this.td_arc.getIsHighscore() && !this.td_arc.getIsOver()) {
+			if ( this.td_arc.getTempo() == 10000000 ) {
+				this.td_arc.setTempo(5000000);
+				setIsFast(true);
+			} else {
+				this.td_arc.setTempo(10000000);
+				setIsFast(false);
+			}
 		//menu-play-button
-		} else if (!getIsScore() && (e.getX() >= 60 && e.getX() <= 350) && (e.getY() >= 50 && e.getY() <= 200) && !this.td_arc.getIsHighscore() && !this.td_arc.getIsOver() ) {
+		} else if (!getIsScore() && (x >= 60 && x <= 350) && (y >= 50 && y <= 200) && !this.td_arc.getIsHighscore() && !this.td_arc.getIsOver() ) {
 			setIsMenu(false);
 		//menu-highscores-button
-		} else if (!getIsScore() && ((e.getX() >= 400 && e.getX() <= 650) && (e.getY() >= 420 && e.getY() <= 630)) && getIsMenu()) {
+		} else if (!getIsScore() && ((x >= 400 && x <= 650) && (y >= 420 && y <= 630)) && getIsMenu()) {
 			this.td_arc.setIsHighscore(true);
 		//menu-new-button
-		} else if (!getIsScore() && getIsMenu() && (e.getX() >= 220 && e.getX() <= 460) && (e.getY() >= 220 && e.getY() <= 400) && !this.td_arc.getIsHighscore()) {
+		} else if (!getIsScore() && getIsMenu() && (x >= 220 && x <= 460) && (y >= 220 && y <= 400) && !this.td_arc.getIsHighscore()) {
 			this.td_arc.newgame(this);
 		}
 		
 		//submit score if game is over
-		if ( this.td_arc.getIsOver() && (e.getX() >= 450 && e.getX() <= 670) && (e.getY() >= 400 && e.getY() <= 430) && !getIsSubmitted() ) {
+		if ( this.td_arc.getIsOver() && (x >= 450 && x <= 670) && (y >= 400 && y <= 430) && !getIsSubmitted() ) {
 			this.td_arc.submitScore(this);
 		//TODO: back to menu if game is over ("button" is ready...)
-		} else if ( this.td_arc.getIsOver() && (e.getX() >= 450 && e.getX() <= 670) && (e.getY() >= 440 && e.getY() <= 470) ) {
+		} else if ( this.td_arc.getIsOver() && (x >= 450 && x <= 670) && (y >= 440 && y <= 470) ) {
 			;
 			
 		}
 		
 		//mall
-		if ( getIsInGrid(e.getX(), e.getY()) )
+		if ( getIsInGrid(x, y) )
 			setIsMall(true);
 		else 
 			setIsMall(false);
@@ -770,8 +818,10 @@ public class Frame extends JPanel implements MouseListener, KeyListener {
 		}
 		
 		//select tower with arrows
-		if ( e.getKeyCode() == 37 || e.getKeyCode() == 39 ) {
-			nextTowerMall();
+		if ( e.getKeyCode() == 37 ) {
+			nextTowerMall(0);
+		} else if ( e.getKeyCode() == 39 ) {
+			nextTowerMall(1);
 		}
 		
 		//buy a tower with b
